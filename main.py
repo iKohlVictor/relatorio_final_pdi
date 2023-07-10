@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 
 # funções
@@ -7,12 +8,12 @@ import matplotlib.pyplot as plt
 
 def get_rgb_channels(imagem):
     # Divide a imagem em canais de cores (RGB)
-    canais = cv2.split(imagem)
+    r, g, b = cv2.split(imagem)
 
     # Obtém os canais individuais
-    blue_channel = canais[0]
-    green_channel = canais[1]
-    red_channel = canais[2]
+    blue_channel = cv2.merge([b, b, b])
+    green_channel = cv2.merge([g, g, g])
+    red_channel = cv2.merge([r, r, r])
 
     return blue_channel, green_channel, red_channel
 
@@ -21,10 +22,12 @@ def get_hsv_channels(imagem):
     # Converte a imagem para o espaço de cores HSV
     imagem_hsv = cv2.cvtColor(imagem, cv2.COLOR_BGR2HSV)
 
+    h, s, v = cv2.split(imagem_hsv)
+
     # Separa as bandas HSV
-    hue_channel = imagem_hsv[:, :, 0]
-    saturation_channel = imagem_hsv[:, :, 1]
-    value_channel = imagem_hsv[:, :, 2]
+    hue_channel = cv2.merge([h, h, h])
+    saturation_channel = cv2.merge([s, s, s])
+    value_channel = cv2.merge([v, v, v])
 
     return imagem_hsv, hue_channel, saturation_channel, value_channel
 
@@ -51,15 +54,19 @@ def get_histograma(imagem):
     return histograma, histograma_equalizado
 
 
-def show_histograma(histograma, plot, nomeDaJanela):
-    plt.figure()
-    plt.subplot(plot[0], plot[1], plot[2])
+def load_histograma(histograma, nomeDaJanela, xLabel, yLabel):
     plt.plot(histograma)
     plt.title(nomeDaJanela)
-    plt.xlabel("Níveis de Cinza")
-    plt.ylabel("Frequência")
-    plt.tight_layout()
-    plt.show()
+    plt.xlabel(xLabel)
+    plt.ylabel(yLabel)
+    plt.savefig('./imagem_convertida/01/01-histograma_original.png')
+
+
+def limiarizar(imagem, limiar, limite_maximo, tipo):
+    limiar, imagem_limiarizada = cv2.threshold(
+        imagem, limiar, limite_maximo, tipo)
+
+    return imagem_limiarizada
 
 
 # programa principal
@@ -69,67 +76,104 @@ nomeDaImagem = "C.01_T.1_P.0001.jpg"
 
 caminhoDaImagem = ("./LuzBranca_Baixo/" + nomeDaImagem)
 
-print(caminhoDaImagem)
 
 imagem = cv2.imread(caminhoDaImagem)
+cv2.imwrite("./imagem_convertida/01/01-imagem_original.jpg", imagem)
+
+histograma_original = cv2.calcHist([imagem], [0], None, [256], [0, 256])
+load_histograma(histograma_original, "Histograma Original",
+                "Valores de Pixel", "Frequência")
+
+imagem_to_yuv = cv2.cvtColor(imagem, cv2.COLOR_BGR2YUV)
+imagem_to_yuv[:, :, 0] = cv2.equalizeHist(imagem_to_yuv[:, :, 0])
+imagem_equalizada = cv2.cvtColor(imagem_to_yuv, cv2.COLOR_YUV2BGR)
+cv2.imwrite("./imagem_convertida/01/01-imagem_equalizada.jpg",
+            imagem_equalizada)
+
+histograma_equalizado = cv2.calcHist(
+    [imagem_equalizada], [0], None, [256], [0, 256])
+
+load_histograma(histograma_equalizado, "Histograma Original e Histograma Equalizado",
+                'Valores de Pixel', 'Frequência')
+
+# separa os canais de cores
+blue_channel, green_channel, red_channel = get_rgb_channels(imagem)
+
+cv2.imwrite("./imagem_convertida/01/02-imagem_r.jpg", red_channel)
+cv2.imwrite("./imagem_convertida/01/03-imagem_g.jpg", green_channel)
+cv2.imwrite("./imagem_convertida/01/04-imagem_b.jpg", red_channel)
 
 
-# Etapas.
+imagem_hsv, hue_channel, saturation_channel, value_channel = get_hsv_channels(
+    imagem)
 
-[blue_channel, green_channel, red_channel] = get_rgb_channels(imagem)
-
-[imagem_hsv, hue_channel, saturation_channel,
-    value_channel] = get_hsv_channels(imagem)
-
-show_image(imagem, "Imagem Original")
-show_image(imagem_hsv, "Imagem HSV")
-show_image(value_channel, "Banda V")
-
-# histograma da imagem original
-# histograma, histograma_equalizado = get_histograma(imagem)
-# show_histograma(histograma, [2, 1, 1], "Histograma da Imagem Original")
-# show_histograma(histograma_equalizado, [2, 1, 2], "Histograma Equalizado")
+cv2.imwrite("./imagem_convertida/01/05-imagem_hsv.jpg", imagem_hsv)
+cv2.imwrite("./imagem_convertida/01/06-imagem_h.jpg", hue_channel)
+cv2.imwrite("./imagem_convertida/01/07-imagem_s.jpg", saturation_channel)
+cv2.imwrite("./imagem_convertida/01/08-imagem_v.jpg", value_channel)
 
 
-# 2 - fazer limiarização de uma banda apenas
+# aplicando o filtro
 
-# Seleciona a banda desejada (por exemplo, a banda verde)
+imagem_filtrada = cv2.GaussianBlur(value_channel, (5, 5), 0)
 
-# banda_escolhida = hue_channel
+cv2.imwrite("./imagem_convertida/01/09-imagem_filtrada.jpg", imagem_filtrada)
 
-# Aplica a limiarização na banda escolhida
+# limiarização
 
-# limiar, imagem_limiarizada = cv2.threshold(
-#     banda_escolhida, 128, 255, cv2.THRESH_BINARY)
+imagem_limiarizada = limiarizar(imagem_filtrada, 127, 255, cv2.THRESH_BINARY)
 
+cv2.imwrite("./imagem_convertida/01/10-imagem_limiarizada.jpg",
+            imagem_limiarizada)
 
-# cv2.namedWindow("Limiarizada", cv2.WINDOW_NORMAL)
-# cv2.imshow("Limiarizada", imagem_limiarizada)
+# morfológicas
 
-# # 3 - aplicar operações morfológicas para remover ruídos
+kernel = np.ones((5, 5), np.uint8)
 
-# # Aplica a operação de abertura para remover ruído
+imagem_processada = cv2.morphologyEx(
+    imagem_limiarizada, cv2.MORPH_OPEN, kernel, iterations=4)
+imagem_processada = cv2.morphologyEx(
+    imagem_processada, cv2.MORPH_CLOSE, kernel, iterations=4)
 
-# elemento_estruturante = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
-# imagem_limpa = cv2.morphologyEx(
-#     imagem_limiarizada, cv2.MORPH_OPEN, elemento_estruturante)
+cv2.imwrite("./imagem_convertida/01/11-imagem_dilatada.jpg", imagem_processada)
 
-# cv2.namedWindow("Imagem Limpa", cv2.WINDOW_NORMAL)
-# cv2.imshow("Imagem Limpa", imagem_limpa)
+# multiplicar
 
-# 4 - multiplicar pela a imagem original para fazer uma espécie de máscara
-# 5 - definir um centro de massa da imagem e recortar um retângulo
-# 6 - extrair valores de variância
+imagem_multiplicada = np.multiply(imagem, imagem_processada)
 
-
-# Espera pela tecla de fechar a janela
-while True:
-    if cv2.waitKey(1) == ord('q'):  # Verifica se a tecla 'q' foi pressionada
-        break
-
-cv2.destroyAllWindows()
+cv2.imwrite("./imagem_convertida/01/12-imagem_multiplicada.jpg",
+            imagem_multiplicada)
 
 
-# Mostra a imagem equalizada
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+# Encontrar contornos
+
+imagem_cinza = cv2.cvtColor(imagem_multiplicada, cv2.COLOR_BGR2GRAY)
+
+contornos, _ = cv2.findContours(
+    imagem_cinza, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+# Encontrando o centro de massa
+
+maior_contorno = max(contornos, key=cv2.contourArea)
+M = cv2.moments(maior_contorno)
+cx = int(M['m10']/M['m00'])
+cy = int(M['m01']/M['m00'])
+
+# Desenhando o centro de massa
+x = cx - 300 // 2
+y = cy - 300 // 2
+
+retangulo_recortado = imagem[max(y, 0):y + 300, max(x, 0):x + 300]
+
+cv2.imwrite("./imagem_convertida/01/13-retangulo_recortado.jpg",
+            retangulo_recortado)
+
+variancia = np.var(retangulo_recortado)
+media = np.mean(retangulo_recortado)
+desvio_padrao = np.std(retangulo_recortado)
+mediana = np.median(retangulo_recortado)
+
+print("Variancia: ", variancia)
+print("Media: ", media)
+print("Desvio Padrão: ", desvio_padrao)
+print("Mediana: ", mediana)

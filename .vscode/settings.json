@@ -1,5 +1,19 @@
 {
-  "cSpell.words": ["imread", "imshow"],
+  "cSpell.words": [
+    "imread",
+    "imshow",
+    "imwrite",
+    "limiarizar",
+    "matplotlib",
+    "maximo",
+    "OTSU",
+    "padrao",
+    "retangulo",
+    "savefig",
+    "variancia",
+    "Variancia",
+    "xlabel"
+  ],
   "[python]": {
     "editor.defaultFormatter": "ms-python.autopep8"
   },
