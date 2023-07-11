@@ -4,6 +4,17 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import os
 
+# classes
+
+
+class Dados:
+    def __init__(self, nome_arquivo, variancia, media, desvio_padrao, mediana):
+        self.nome_arquivo = nome_arquivo
+        self.variancia = variancia
+        self.media = media
+        self.desvio_padrao = desvio_padrao
+        self.mediana = mediana
+
 # funções
 
 
@@ -73,17 +84,17 @@ def limiarizar(imagem, limiar, limite_maximo, tipo):
 
 nome_arquivos = []
 
-for nome_arquivo in os.listdir("./LuzBranca_Baixo"):
-    if os.path.isfile(os.path.join("./LuzBranca_Baixo", nome_arquivo)):
+objetoDeDados = []
+
+for nome_arquivo in os.listdir("./LuzBranca_Cima"):
+    if os.path.isfile(os.path.join("./LuzBranca_Cima", nome_arquivo)):
         nome_arquivos.append(nome_arquivo)
 
 for nome_arquivo in nome_arquivos:
     nome_arquivo.split(".jpg")[0]
     # programa principal
-    pasta = "LuzBranca_Baixo"
+    pasta = "LuzBranca_Cima"
     arquivo = nome_arquivo.split(".jpg")[0]
-
-    print("Arquivo: ", nome_arquivo)
 
     nomeDaImagem = nome_arquivo
 
@@ -202,7 +213,24 @@ for nome_arquivo in nome_arquivos:
     desvio_padrao = np.std(retangulo_recortado)
     mediana = np.median(retangulo_recortado)
 
-    print("Variancia: ", variancia)
-    print("Media: ", media)
-    print("Desvio Padrão: ", desvio_padrao)
-    print("Mediana: ", mediana)
+    # print("Variancia: ", variancia)
+    # print("Media: ", media)
+    # print("Desvio Padrão: ", desvio_padrao)
+    # print("Mediana: ", mediana)
+
+    dadoFinal = Dados(nome_arquivo, variancia, media, desvio_padrao, mediana)
+    print(vars(dadoFinal))
+    objetoDeDados.append(dadoFinal)
+
+
+# usar o array de objetos para criar um dataframe
+
+df = pd.DataFrame([vars(f) for f in objetoDeDados])
+
+# salvar o dataframe em um arquivo csv
+
+df.to_csv('./' + pasta + '.csv', index=False)
+
+# mostrar o dataframe
+
+print(df)
