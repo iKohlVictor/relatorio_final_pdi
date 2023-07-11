@@ -1,3 +1,3 @@
-### Trabalho final da disciplina de processamento digital de imagens.
+# Trabalho final da disciplina de processamento digital de imagens.
 
-# Alunos : Ian Kohl, Vinicius Bisinoto
+### Alunos : Ian Kohl, Vinicius Bisinoto
