@@ -86,14 +86,14 @@ nome_arquivos = []
 
 objetoDeDados = []
 
-for nome_arquivo in os.listdir("./LuzUltravioleta_Baixo"):
-    if os.path.isfile(os.path.join("./LuzUltravioleta_Baixo", nome_arquivo)):
+for nome_arquivo in os.listdir("./LuzUltravioleta_Cima"):
+    if os.path.isfile(os.path.join("./LuzUltravioleta_Cima", nome_arquivo)):
         nome_arquivos.append(nome_arquivo)
 
 for nome_arquivo in nome_arquivos:
     nome_arquivo.split(".jpg")[0]
     # programa principal
-    pasta = "LuzUltravioleta_Baixo"
+    pasta = "LuzUltravioleta_Cima"
     arquivo = nome_arquivo.split(".jpg")[0]
 
     nomeDaImagem = nome_arquivo
